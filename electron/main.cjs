@@ -47,7 +47,32 @@ ipcMain.handle('app:getInfo', () => {
         platform: process.platform
     };
 });
+ipcMain.on("window:minimize", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.minimize();
+});
 
+ipcMain.on("window:maximize", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+
+    if (win) {
+        if (win.isMaximized()) {
+            win.unmaximize();
+        } else {
+            win.maximize();
+        }
+    }
+});
+
+ipcMain.on("window:close", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.close();
+});
+
+ipcMain.handle("window:isMaximized", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return win ? win.isMaximized() : false;
+});
 app.whenReady().then(() => {
     createWindow();
 

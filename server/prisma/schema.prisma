@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,29 +9,117 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+
+
 model Admin {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
-}
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String?  @unique
-  phone     String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt    DateTime @updatedAt
 }
 
-model Ticket {
+
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings     Booking[]
+}
+
+model TicketType {
   id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  category    String
+  name        String   @unique @default("General Entry")
   price       Int
-  capacity    Int
+  description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  bookings    Booking[]
+}
+
+
+
+model DailyCapacity {
+  id          Int      @id @default(autoincrement())
+  visitDate   DateTime @unique @db.Date
+  capacity    Int
+  bookedCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings    Booking[]
+}
+
+
+
+model Booking {
+  id              Int      @id @default(autoincrement())
+  bookingCode     String   @unique @default(cuid())
+
+  userId          Int
+  ticketTypeId    Int
+  dailyCapacityId Int
+
+  quantity        Int
+  unitPrice       Int
+  totalAmount     Int
+
+  status          String   @default("PENDING_PAYMENT")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User          @relation(fields: [userId], references: [id])
+  ticketType      TicketType    @relation(fields: [ticketTypeId], references: [id])
+  dailyCapacity   DailyCapacity @relation(fields: [dailyCapacityId], references: [id])
+
+  payments        Payment[]
+  issuedTickets   IssuedTicket[]
+
+  @@index([userId, createdAt])
+  @@index([dailyCapacityId, status])
+}
+
+
+
+model Payment {
+  id                Int      @id @default(autoincrement())
+  bookingId         Int
+
+  amount            Int
+  status            String   @default("PENDING")
+
+  provider          String   @default("MOCK")
+  providerReference String?
+
+  createdAt         DateTime @default(now())
+  paidAt            DateTime?
+
+  booking           Booking  @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+}
+
+
+
+model IssuedTicket {
+  id          Int      @id @default(autoincrement())
+  bookingId   Int
+
+  qrToken     String   @unique @default(cuid())
+  status      String   @default("VALID")
+
+  issuedAt    DateTime @default(now())
+  scannedAt   DateTime?
+
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
 }

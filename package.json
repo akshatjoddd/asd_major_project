@@ -7,7 +7,11 @@
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "dev": "concurrently -n api,web,app \"npm run dev --prefix server\" \"npm run dev --prefix client\" \"wait-on http://localhost:5173 http://localhost:4000/api/health && electron .\"",
     "build:client": "npm run build --prefix client",
-    "start": "npm run build:client && electron ."
+    "start": "npm run build:client && concurrently -k -n api,app \"node server/src/index.js\" \"wait-on http://localhost:4000/api/health && MUSEUMX_PROD=1 electron .\""
   },
-  "devDependencies": { "concurrently": "^9.0.0", "electron": "^33.0.0", "wait-on": "^8.0.0" }
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "electron": "^33.0.0",
+    "wait-on": "^8.0.0"
+  }
 }

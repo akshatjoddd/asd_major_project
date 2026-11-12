@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUserAuth } from '../user/UserAuthContext';
+import LanguageToggle from '../components/LanguageToggle';
 
 export default function UserLogin() {
   const { t } = useTranslation();
@@ -50,102 +51,136 @@ export default function UserLogin() {
   }
 
   return (
-    <div className="page-shell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
-      <div className="login" style={{ width: '100%', maxWidth: 420 }}>
-        {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: '2px solid var(--surface-2, #e5e7eb)', marginBottom: '1.5rem' }}>
+    <div className="login">
+      {/* Left panel — same structure as admin Login */}
+      <div className="login__panel">
+        <Link className="brand" to="/">
+          <span className="brand__mark">MX</span>
+          <span className="brand__text">
+            {t('common.appName')}
+            <small>{t('common.museumName')}</small>
+          </span>
+        </Link>
+
+        {/* Tab switcher */}
+        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.75rem', borderBottom: '1px solid var(--border, #e5e7eb)' }}>
           <button
             type="button"
-            className={`btn btn--small${tab === 'login' ? ' btn--accent' : ''}`}
-            style={{ flex: 1, borderRadius: 0, borderBottom: tab === 'login' ? '2px solid var(--accent, #2563eb)' : 'none' }}
             onClick={() => { setTab('login'); setError(''); }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0',
+              marginRight: '1.5rem',
+              fontWeight: tab === 'login' ? 700 : 400,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              borderBottom: tab === 'login' ? '2px solid currentColor' : '2px solid transparent',
+              marginBottom: '-1px',
+              color: 'inherit',
+            }}
           >
             {t('user.loginTab')}
           </button>
           <button
             type="button"
-            className={`btn btn--small${tab === 'register' ? ' btn--accent' : ''}`}
-            style={{ flex: 1, borderRadius: 0, borderBottom: tab === 'register' ? '2px solid var(--accent, #2563eb)' : 'none' }}
             onClick={() => { setTab('register'); setError(''); }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0',
+              fontWeight: tab === 'register' ? 700 : 400,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              borderBottom: tab === 'register' ? '2px solid currentColor' : '2px solid transparent',
+              marginBottom: '-1px',
+              color: 'inherit',
+            }}
           >
             {t('user.registerTab')}
           </button>
         </div>
 
         {error && (
-          <div className="form-error" style={{ marginBottom: '1rem', color: 'var(--error, #dc2626)', fontSize: '0.875rem' }}>
+          <p style={{ color: 'var(--error, #dc2626)', fontSize: '0.875rem', marginBottom: '1rem' }}>
             {error}
-          </div>
+          </p>
         )}
 
         {tab === 'login' ? (
-          <form className="form" onSubmit={handleLogin}>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem' }}>
-              {t('user.loginTitle')}
-            </h1>
-            <div className="field">
-              <label htmlFor="login-email">{t('common.email')}</label>
+          <form className="login__form" onSubmit={handleLogin}>
+            <div className="login__head" style={{ marginBottom: '1.25rem' }}>
+              <h1>{t('user.loginTitle')}</h1>
+            </div>
+
+            <label className="field">
+              <span>{t('common.email')}</span>
               <input
-                id="login-email"
                 type="email"
                 required
                 autoComplete="email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="login-password">{t('user.password')}</label>
+            </label>
+
+            <label className="field">
+              <span>{t('user.password')}</span>
               <input
-                id="login-password"
                 type="password"
                 required
                 autoComplete="current-password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
               />
-            </div>
-            <button className="btn btn--accent" type="submit" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+            </label>
+
+            <button type="submit" className="btn btn--accent btn--block" disabled={loading}>
               {loading ? t('common.loading') : t('user.loginCta')}
             </button>
-            <p style={{ marginTop: '1rem', fontSize: '0.875rem', textAlign: 'center' }}>
+
+            <p className="login__hint">
               {t('user.noAccount')}{' '}
-              <button type="button" className="btn btn--small" onClick={() => { setTab('register'); setError(''); }}>
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0, font: 'inherit', color: 'inherit' }}
+                onClick={() => { setTab('register'); setError(''); }}
+              >
                 {t('user.registerTab')}
               </button>
             </p>
           </form>
         ) : (
-          <form className="form" onSubmit={handleRegister}>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.25rem' }}>
-              {t('user.registerTitle')}
-            </h1>
-            <div className="field">
-              <label htmlFor="reg-name">{t('common.name')}</label>
+          <form className="login__form" onSubmit={handleRegister}>
+            <div className="login__head" style={{ marginBottom: '1.25rem' }}>
+              <h1>{t('user.registerTitle')}</h1>
+            </div>
+
+            <label className="field">
+              <span>{t('common.name')}</span>
               <input
-                id="reg-name"
                 type="text"
                 required
                 autoComplete="name"
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-email">{t('common.email')}</label>
+            </label>
+
+            <label className="field">
+              <span>{t('common.email')}</span>
               <input
-                id="reg-email"
                 type="email"
                 required
                 autoComplete="email"
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-password">{t('user.password')}</label>
+            </label>
+
+            <label className="field">
+              <span>{t('user.password')}</span>
               <input
-                id="reg-password"
                 type="password"
                 required
                 autoComplete="new-password"
@@ -153,28 +188,48 @@ export default function UserLogin() {
                 value={regPassword}
                 onChange={(e) => setRegPassword(e.target.value)}
               />
-            </div>
-            <div className="field">
-              <label htmlFor="reg-phone">{t('common.phone')} <span style={{ opacity: 0.6 }}>({t('common.optional')})</span></label>
+            </label>
+
+            <label className="field">
+              <span>
+                {t('common.phone')}{' '}
+                <small style={{ opacity: 0.6 }}>({t('common.optional')})</small>
+              </span>
               <input
-                id="reg-phone"
                 type="tel"
                 autoComplete="tel"
                 value={regPhone}
                 onChange={(e) => setRegPhone(e.target.value)}
               />
-            </div>
-            <button className="btn btn--accent" type="submit" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+            </label>
+
+            <button type="submit" className="btn btn--accent btn--block" disabled={loading}>
               {loading ? t('common.loading') : t('user.registerCta')}
             </button>
-            <p style={{ marginTop: '1rem', fontSize: '0.875rem', textAlign: 'center' }}>
+
+            <p className="login__hint">
               {t('user.hasAccount')}{' '}
-              <button type="button" className="btn btn--small" onClick={() => { setTab('login'); setError(''); }}>
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0, font: 'inherit', color: 'inherit' }}
+                onClick={() => { setTab('login'); setError(''); }}
+              >
                 {t('user.loginTab')}
               </button>
             </p>
           </form>
         )}
+
+        <div className="login__foot">
+          <LanguageToggle compact />
+          <Link to="/">{t('nav.home')}</Link>
+        </div>
+      </div>
+
+      {/* Right art column — same as admin Login */}
+      <div className="login__art" aria-hidden="true">
+        <span className="login__artMark">MX</span>
+        <p>{t('common.museumName')}</p>
       </div>
     </div>
   );

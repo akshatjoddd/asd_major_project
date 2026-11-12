@@ -9,7 +9,13 @@ export class ApiError extends Error {
   }
 }
 
-export const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+export const API_URL = (
+  import.meta.env.VITE_API_URL !== undefined && import.meta.env.VITE_API_URL !== ''
+    ? import.meta.env.VITE_API_URL
+    : typeof window !== 'undefined' && window.location.protocol === 'file:'
+      ? 'http://localhost:4000'
+      : ''
+).replace(/\/$/, '');
 
 let authToken = null;
 let unauthorizedHandler = null;

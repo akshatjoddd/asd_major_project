@@ -28,6 +28,11 @@ export const validateTicket = (code) => post('/api/tickets/validate', { code });
 
 export const login = (email, password) => post('/api/admin/login', { email, password });
 
+export const userLogin = (email, password) => post('/api/user/login', { email, password });
+export const userRegister = (payload) => post('/api/user/register', payload);
+export const getUserProfile = () => get('/api/user/me');
+export const getUserBookings = () => get('/api/user/bookings');
+
 export const getAdminBookings = (params) => get(`/api/admin/bookings${query(params)}`);
 export const getAdminPayments = (params) => get(`/api/admin/payments${query(params)}`);
 

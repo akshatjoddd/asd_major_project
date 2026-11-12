@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { prisma } from './db.js';
-import { signAdminToken, requireAdmin } from './auth.js';
+import { signAdminToken, requireAdmin, signUserToken, requireUser, optionalUser } from './auth.js';
 
 const app = express();
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -151,8 +151,122 @@ app.get('/api/slots', wrap(async (req, res) => {
   res.json(slots);
 }));
 
+// ---------- Normal User Authentication & Profile ----------
+app.post('/api/user/register', wrap(async (req, res) => {
+  const { name, email, password, phone } = req.body || {};
+  if (!name || typeof name !== 'string' || name.trim().length < 2) {
+    throw new HttpError(400, 'Full name is required (at least 2 characters)', 'INVALID_NAME');
+  }
+  if (!email || typeof email !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    throw new HttpError(400, 'A valid email address is required', 'INVALID_EMAIL');
+  }
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    throw new HttpError(400, 'Password must be at least 6 characters', 'INVALID_PASSWORD');
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  let user;
+
+  if (existing) {
+    const isGuest = await bcrypt.compare('museumx_guest', existing.passwordHash);
+    if (!isGuest) {
+      throw new HttpError(409, 'An account with this email already exists. Please log in.', 'USER_EXISTS');
+    }
+    user = await prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        name: name.trim(),
+        phone: phone ? String(phone).trim() : existing.phone,
+        passwordHash,
+      },
+    });
+  } else {
+    user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: cleanEmail,
+        phone: phone ? String(phone).trim() : null,
+        passwordHash,
+      },
+    });
+  }
+
+  const token = signUserToken(user);
+  res.status(201).json({
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+    },
+  });
+}));
+
+app.post('/api/user/login', wrap(async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) {
+    throw new HttpError(400, 'Email and password are required', 'INVALID_CREDENTIALS');
+  }
+
+  const cleanEmail = String(email).trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
+  if (!user || !user.passwordHash) {
+    throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  if (!valid) {
+    throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
+  }
+
+  const token = signUserToken(user);
+  res.json({
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+    },
+  });
+}));
+
+app.get('/api/user/me', requireUser, wrap(async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { id: true, name: true, email: true, phone: true, createdAt: true },
+  });
+  if (!user) throw new HttpError(404, 'User not found', 'USER_NOT_FOUND');
+  res.json({ user });
+}));
+
+app.get('/api/user/bookings', requireUser, wrap(async (req, res) => {
+  const rows = await prisma.booking.findMany({
+    where: {
+      OR: [
+        { userId: req.user.id },
+        { user: { email: { equals: req.user.email, mode: 'insensitive' } } },
+      ],
+    },
+    include: {
+      user: true,
+      ticketType: true,
+      dailyCapacity: true,
+      payments: true,
+      issuedTickets: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  res.json({ bookings: rows.map(publicBooking) });
+}));
+
 // 5. Create Booking
-app.post('/api/bookings', wrap(async (req, res) => {
+app.post('/api/bookings', optionalUser, wrap(async (req, res) => {
   const { target = 'entry', refId, date, slotId, counts, visitor } = req.body || {};
   if (!date) throw new HttpError(422, 'Choose a visit date.', 'INVALID_DATE');
   if (!slotId) throw new HttpError(422, 'Choose a time slot.', 'INVALID_SLOT');
@@ -181,19 +295,25 @@ app.post('/api/bookings', wrap(async (req, res) => {
 
   const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
-  // Upsert visitor User in Neon DB
-  const emailContact = (visitor.email || `${String(visitor.phone).replace(/\D/g, '')}@museumx.user`).toLowerCase().trim();
-  const guestPassHash = await bcrypt.hash('museumx_guest', 8);
-  const user = await prisma.user.upsert({
-    where: { email: emailContact },
-    update: { name: String(visitor.name).trim(), phone: visitor.phone ? String(visitor.phone).trim() : undefined },
-    create: {
-      name: String(visitor.name).trim(),
-      email: emailContact,
-      phone: visitor.phone ? String(visitor.phone).trim() : null,
-      passwordHash: guestPassHash,
-    },
-  });
+  // Resolve or upsert visitor User in Neon DB
+  let userId;
+  if (req.user?.id) {
+    userId = req.user.id;
+  } else {
+    const emailContact = (visitor.email || `${String(visitor.phone).replace(/\D/g, '')}@museumx.user`).toLowerCase().trim();
+    const guestPassHash = await bcrypt.hash('museumx_guest', 8);
+    const user = await prisma.user.upsert({
+      where: { email: emailContact },
+      update: { name: String(visitor.name).trim(), phone: visitor.phone ? String(visitor.phone).trim() : undefined },
+      create: {
+        name: String(visitor.name).trim(),
+        email: emailContact,
+        phone: visitor.phone ? String(visitor.phone).trim() : null,
+        passwordHash: guestPassHash,
+      },
+    });
+    userId = user.id;
+  }
 
   // Daily capacity
   const visitDateUtc = new Date(`${date}T00:00:00.000Z`);
@@ -231,7 +351,7 @@ app.post('/api/bookings', wrap(async (req, res) => {
   const booking = await prisma.booking.create({
     data: {
       bookingCode,
-      userId: user.id,
+      userId,
       ticketTypeId: primaryTicketTypeId,
       dailyCapacityId: capacity.id,
       quantity: totalVisitors,

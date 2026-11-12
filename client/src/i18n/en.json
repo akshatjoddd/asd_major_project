@@ -411,5 +411,18 @@
     "INVALID_INPUT": "Please check the details and try again.",
     "DATE_REQUIRED": "Choose a date first.",
     "CONTACT_REQUIRED": "Enter the contact used at booking."
+  },
+  "user": {
+    "loginTitle": "Sign in",
+    "registerTitle": "Create account",
+    "loginTab": "Sign in",
+    "registerTab": "Register",
+    "password": "Password",
+    "myBookings": "My bookings",
+    "signOut": "Sign out",
+    "loginCta": "Sign in",
+    "registerCta": "Create account",
+    "noAccount": "No account?",
+    "hasAccount": "Already have an account?"
   }
 }

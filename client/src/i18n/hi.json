@@ -411,5 +411,18 @@
     "INVALID_INPUT": "विवरण जाँचकर फिर कोशिश करें।",
     "DATE_REQUIRED": "पहले तारीख चुनें।",
     "CONTACT_REQUIRED": "बुकिंग में दिया गया संपर्क डालें।"
+  },
+  "user": {
+    "loginTitle": "साइन इन करें",
+    "registerTitle": "खाता बनाएँ",
+    "loginTab": "साइन इन",
+    "registerTab": "रजिस्टर करें",
+    "password": "पासवर्ड",
+    "myBookings": "मेरी बुकिंग",
+    "signOut": "साइन आउट",
+    "loginCta": "साइन इन",
+    "registerCta": "खाता बनाएँ",
+    "noAccount": "खाता नहीं है?",
+    "hasAccount": "पहले से खाता है?"
   }
 }

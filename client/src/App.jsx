@@ -5,8 +5,11 @@ import Chat from './pages/Chat';
 import Ticket from './pages/Ticket';
 import Lookup from './pages/Lookup';
 import NotFound from './pages/NotFound';
+import UserLogin from './pages/UserLogin';
+import MyBookings from './pages/MyBookings';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './admin/auth/AuthContext';
+import { UserAuthProvider } from './user/UserAuthContext';
 import ProtectedRoute from './admin/auth/ProtectedRoute';
 import AdminLayout from './admin/AdminLayout';
 import Login from './admin/Login';
@@ -23,13 +26,16 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <HashRouter>
-          <Routes>
+        <UserAuthProvider>
+          <HashRouter>
+            <Routes>
             <Route element={<PublicLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/ticket/:bookingId" element={<Ticket />} />
               <Route path="/lookup" element={<Lookup />} />
+              <Route path="/login" element={<UserLogin />} />
+              <Route path="/my-bookings" element={<MyBookings />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 
@@ -52,8 +58,9 @@ export default function App() {
               <Route path="pricing" element={<Pricing />} />
               <Route path="validate" element={<Validate />} />
             </Route>
-          </Routes>
-        </HashRouter>
+            </Routes>
+          </HashRouter>
+          </UserAuthProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

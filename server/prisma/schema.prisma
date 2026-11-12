@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,22 +8,21 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-
-
 model Admin {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   passwordHash String
+  name         String?  @default("Admin")
+  role         String?  @default("admin")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
-
-
 
 model User {
   id           Int      @id @default(autoincrement())
   name         String
   email        String   @unique
+  phone        String?
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -33,18 +31,54 @@ model User {
 }
 
 model TicketType {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  nameHi        String?
+  price         Int
+  description   String?
+  descriptionHi String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  bookings      Booking[]
+}
+
+model Exhibition {
+  id            Int      @id @default(autoincrement())
+  name          String
+  nameHi        String?
+  description   String
+  descriptionHi String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Show {
+  id            Int      @id @default(autoincrement())
+  name          String
+  nameHi        String?
+  description   String
+  descriptionHi String?
+  venue         String?
+  venueHi       String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SlotTemplate {
   id          Int      @id @default(autoincrement())
-  name        String   @unique @default("General Entry")
-  price       Int
-  description String?
+  type        String   @default("entry")
+  refId       Int?
+  startTime   String
+  endTime     String
+  capacity    Int      @default(100)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  bookings    Booking[]
 }
-
-
 
 model DailyCapacity {
   id          Int      @id @default(autoincrement())
@@ -56,8 +90,6 @@ model DailyCapacity {
 
   bookings    Booking[]
 }
-
-
 
 model Booking {
   id              Int      @id @default(autoincrement())
@@ -73,6 +105,15 @@ model Booking {
 
   status          String   @default("PENDING_PAYMENT")
 
+  target          String?  @default("entry")
+  refId           Int?
+  refName         String?
+  refNameHi       String?
+  date            String?
+  slotId          String?
+  slotLabel       String?
+  itemsJson       String?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -86,8 +127,6 @@ model Booking {
   @@index([userId, createdAt])
   @@index([dailyCapacityId, status])
 }
-
-
 
 model Payment {
   id                Int      @id @default(autoincrement())
@@ -106,8 +145,6 @@ model Payment {
 
   @@index([bookingId])
 }
-
-
 
 model IssuedTicket {
   id          Int      @id @default(autoincrement())

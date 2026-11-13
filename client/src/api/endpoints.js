@@ -33,8 +33,21 @@ export const userRegister = (payload) => post('/api/user/register', payload);
 export const getUserProfile = () => get('/api/user/me');
 export const getUserBookings = () => get('/api/user/bookings');
 
-export const getAdminBookings = (params) => get(`/api/admin/bookings${query(params)}`);
-export const getAdminPayments = (params) => get(`/api/admin/payments${query(params)}`);
+export const getAdminBookings = async (params) => {
+  const res = await get(`/api/admin/bookings${query(params)}`);
+  return {
+    ...res,
+    rows: res?.rows || res?.items || [],
+  };
+};
+
+export const getAdminPayments = async (params) => {
+  const res = await get(`/api/admin/payments${query(params)}`);
+  return {
+    ...res,
+    rows: res?.rows || res?.items || [],
+  };
+};
 
 export async function getAnalytics({ days = 7 } = {}) {
   const params = query({ days });
@@ -44,11 +57,47 @@ export async function getAnalytics({ days = 7 } = {}) {
     get(`/api/admin/analytics/peak-hours${params}`),
     get(`/api/admin/analytics/popular${params}`),
   ]);
+
+  const safeSummary = {
+    bookings: summary?.bookings ?? 0,
+    confirmedBookings: summary?.confirmedBookings ?? 0,
+    visitors: summary?.visitors ?? 0,
+    revenue: summary?.revenue ?? 0,
+    today: summary?.today ?? summary?.todayBookings ?? 0,
+    ...summary,
+  };
+
+  const safeBookingsByDay = Array.isArray(bookingsByDay)
+    ? bookingsByDay.map((row) => ({
+        ...row,
+        bookings: row.bookings ?? row.count ?? 0,
+        label: row.label || String(row.date).slice(5),
+      }))
+    : [];
+
+  const safePeakHours = Array.isArray(peakHours)
+    ? peakHours.map((row) => ({
+        ...row,
+        hour: row.hour || row.slot || '10:00',
+        visitors: row.visitors ?? 0,
+      }))
+    : [];
+
+  const safePopular = Array.isArray(popular)
+    ? popular.map((row) => ({
+        ...row,
+        name: row.name || 'General Entry',
+        nameHi: row.nameHi || row.name || 'सामान्य प्रवेश',
+        type: row.type || 'entry',
+        visitors: row.visitors ?? row.count ?? 0,
+      }))
+    : [];
+
   return {
-    summary,
-    bookingsByDay: bookingsByDay.map((row) => ({ ...row, label: row.label || String(row.date).slice(5) })),
-    peakHours,
-    popular,
+    summary: safeSummary,
+    bookingsByDay: safeBookingsByDay,
+    peakHours: safePeakHours,
+    popular: safePopular,
   };
 }
 

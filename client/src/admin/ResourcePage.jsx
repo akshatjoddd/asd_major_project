@@ -135,7 +135,7 @@ export default function ResourcePage({ config }) {
               ))}
             </tbody>
           </table>
-          {data && data.length === 0 ? <EmptyState title={t('admin.table.empty')} /> : null}
+          {data && (!data.length || data.length === 0) ? <EmptyState title={t('admin.table.empty')} /> : null}
         </div>
       ) : null}
 

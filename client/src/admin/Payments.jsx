@@ -101,7 +101,7 @@ export default function Payments() {
                 ))}
               </tbody>
             </table>
-            {data && data.rows.length === 0 ? <EmptyState title={t('admin.table.empty')} /> : null}
+            {data && (!data.rows || data.rows.length === 0) ? <EmptyState title={t('admin.table.empty')} /> : null}
           </div>
 
           {data && data.total > 0 ? (

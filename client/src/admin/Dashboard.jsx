@@ -65,7 +65,7 @@ export default function Dashboard() {
 
           <section className="card">
             <h2>{t('admin.dashboard.popular')}</h2>
-            {data.popular.length === 0 ? (
+            {!data.popular?.length ? (
               <EmptyState title={t('admin.dashboard.empty')} />
             ) : (
               <ul className="popular">

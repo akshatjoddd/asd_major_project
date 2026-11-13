@@ -605,8 +605,10 @@ app.get('/api/admin/bookings', requireAdmin, wrap(async (req, res) => {
     }),
   ]);
 
+  const mappedRows = rows.map(publicBooking);
   res.json({
-    items: rows.map(publicBooking),
+    rows: mappedRows,
+    items: mappedRows,
     total,
     page: p,
     pageSize: size,
@@ -632,17 +634,20 @@ app.get('/api/admin/payments', requireAdmin, wrap(async (req, res) => {
     }),
   ]);
 
+  const mappedRows = rows.map((r) => ({
+    id: r.id,
+    bookingId: r.bookingId,
+    bookingCode: r.booking?.bookingCode || `MX-${r.bookingId}`,
+    amount: r.amount,
+    status: r.status,
+    provider: r.provider,
+    providerReference: r.providerReference,
+    createdAt: r.createdAt.toISOString(),
+  }));
+
   res.json({
-    items: rows.map((r) => ({
-      id: r.id,
-      bookingId: r.bookingId,
-      bookingCode: r.booking?.bookingCode || `MX-${r.bookingId}`,
-      amount: r.amount,
-      status: r.status,
-      provider: r.provider,
-      providerReference: r.providerReference,
-      createdAt: r.createdAt.toISOString(),
-    })),
+    rows: mappedRows,
+    items: mappedRows,
     total,
     page: p,
     pageSize: size,
@@ -676,6 +681,7 @@ app.get('/api/admin/analytics/summary', requireAdmin, wrap(async (req, res) => {
     confirmedBookings,
     visitors: visitorsAgg._sum.quantity || 0,
     revenue: revenueAgg._sum.amount || 0,
+    today: todayBookings,
     todayBookings,
   });
 }));
@@ -696,13 +702,14 @@ app.get('/api/admin/analytics/bookings-by-day', requireAdmin, wrap(async (req, r
     const d = new Date(since);
     d.setDate(d.getDate() + i);
     const key = d.toISOString().slice(0, 10);
-    map[key] = { date: key, label: key.slice(5), count: 0, revenue: 0, visitors: 0 };
+    map[key] = { date: key, label: key.slice(5), bookings: 0, count: 0, revenue: 0, visitors: 0 };
   }
 
   for (const b of bookings) {
     const key = b.createdAt.toISOString().slice(0, 10);
     if (map[key]) {
       map[key].count += 1;
+      map[key].bookings += 1;
       if (b.status === 'CONFIRMED') {
         map[key].revenue += b.totalAmount;
         map[key].visitors += b.quantity;
@@ -725,7 +732,7 @@ app.get('/api/admin/analytics/peak-hours', requireAdmin, wrap(async (_req, res) 
     map[slot] = (map[slot] || 0) + b.quantity;
   }
 
-  const items = Object.entries(map).map(([slot, visitors]) => ({ slot, visitors }));
+  const items = Object.entries(map).map(([slot, visitors]) => ({ hour: slot, slot, visitors }));
   items.sort((a, b) => b.visitors - a.visitors);
   res.json(items);
 }));
@@ -733,16 +740,26 @@ app.get('/api/admin/analytics/peak-hours', requireAdmin, wrap(async (_req, res) 
 app.get('/api/admin/analytics/popular', requireAdmin, wrap(async (_req, res) => {
   const bookings = await prisma.booking.findMany({
     where: { status: 'CONFIRMED' },
-    select: { refName: true, quantity: true },
+    select: { refName: true, quantity: true, target: true },
   });
 
   const map = {};
   for (const b of bookings) {
     const name = b.refName || 'General Entry';
-    map[name] = (map[name] || 0) + b.quantity;
+    const target = b.target || 'entry';
+    if (!map[name]) {
+      map[name] = { count: 0, target };
+    }
+    map[name].count += b.quantity;
   }
 
-  const items = Object.entries(map).map(([name, count]) => ({ name, count }));
+  const items = Object.entries(map).map(([name, data]) => ({
+    name,
+    nameHi: name,
+    type: data.target || 'entry',
+    count: data.count,
+    visitors: data.count,
+  }));
   items.sort((a, b) => b.count - a.count);
   res.json(items);
 }));

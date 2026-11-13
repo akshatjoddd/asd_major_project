@@ -36,6 +36,8 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const result = await api.login(email, password);
+    // Admin token takes priority — clear any lingering user token first
+    try { localStorage.removeItem('museumx.user'); } catch { /* ignore */ }
     setAuthToken(result.token);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(result));

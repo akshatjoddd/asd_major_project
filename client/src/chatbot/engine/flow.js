@@ -1,13 +1,3 @@
-// The conversation is a finite state machine. Prompts are i18n keys, options are
-// ids resolved by QuickReplies, and every transition is declared here as data.
-//
-// State fields:
-//   say      prompt i18n key (omit for states that load data or run an action)
-//   options  static option ids, or omitted when the state loads them (options)
-//   control  rich control rendered in the message: date | counts | visitor | summary | cancelForm
-//   load     async loader name handled by useChat: exhibitions | shows | slots | info
-//   action   async action name handled by useChat: startPayment
-//   next     next step id, or map of option id -> step id | { step, infoKey }
 
 export const flow = {
   authRequired: {

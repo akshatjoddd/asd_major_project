@@ -111,8 +111,6 @@ button {
   border: 0;
 }
 
-/* ---------- shared atoms ---------- */
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -547,8 +545,6 @@ button {
   color: var(--ink);
 }
 
-/* ---------- modal ---------- */
-
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -607,8 +603,6 @@ button {
   border-top: 1px solid var(--line);
   background: var(--paper);
 }
-
-/* ---------- site chrome ---------- */
 
 .site {
   display: flex;
@@ -789,8 +783,6 @@ button {
   font-size: 0.75rem;
   color: var(--muted-2);
 }
-
-/* ---------- home ---------- */
 
 .home {
   max-width: 1180px;
@@ -1050,8 +1042,6 @@ button {
   border-top: 1px dashed rgba(246, 241, 230, 0.25);
   padding-top: 8px;
 }
-
-/* ---------- chat ---------- */
 
 .chat-page {
   max-width: 1180px;
@@ -1425,8 +1415,6 @@ button {
   cursor: not-allowed;
 }
 
-/* ---------- controls inside chat ---------- */
-
 .control {
   display: flex;
   flex-direction: column;
@@ -1597,8 +1585,6 @@ button {
   justify-content: space-between;
   gap: 12px;
 }
-
-/* ---------- ticket ---------- */
 
 .ticket {
   display: grid;
@@ -1803,8 +1789,6 @@ button {
   margin-top: 22px;
 }
 
-/* ---------- lookup / 404 ---------- */
-
 .lookup {
   max-width: 980px;
   margin: 0 auto;
@@ -1856,8 +1840,6 @@ button {
   color: var(--accent);
   line-height: 1;
 }
-
-/* ---------- payment ---------- */
 
 .payment {
   width: min(430px, 100%);
@@ -1948,8 +1930,6 @@ button {
   text-decoration: underline;
   align-self: center;
 }
-
-/* ---------- admin shell ---------- */
 
 .admin {
   display: grid;
@@ -2235,8 +2215,6 @@ button {
   color: var(--muted);
 }
 
-/* ---------- tables ---------- */
-
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -2404,8 +2382,6 @@ button {
   grid-column: 1 / -1;
 }
 
-/* ---------- admin login ---------- */
-
 .login {
   min-height: 100vh;
   display: grid;
@@ -2496,8 +2472,6 @@ button {
   text-transform: uppercase;
   color: rgba(246, 241, 230, 0.55);
 }
-
-/* ---------- gate validation ---------- */
 
 .validate {
   display: grid;
@@ -2694,8 +2668,6 @@ button {
   flex: 1;
   color: var(--muted);
 }
-
-/* ---------- responsive ---------- */
 
 @media (max-width: 1020px) {
   .chat-page {
@@ -2946,8 +2918,6 @@ button {
     scroll-behavior: auto !important;
   }
 }
-
-/* ---------- print ---------- */
 
 @media print {
   .site-header,

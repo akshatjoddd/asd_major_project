@@ -1,4 +1,3 @@
-// Fails the build when en.json and hi.json drift apart (missing or extra keys).
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

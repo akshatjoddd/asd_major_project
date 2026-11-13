@@ -10,15 +10,13 @@ export default function UserLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectPath = location.state?.from || '/my-bookings';
-  const [tab, setTab] = useState('login'); // 'login' | 'register'
+  const [tab, setTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Login form state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Register form state
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
@@ -54,7 +52,6 @@ export default function UserLogin() {
 
   return (
     <div className="login">
-      {/* Left panel — same structure as admin Login */}
       <div className="login__panel">
         <Link className="brand" to="/">
           <span className="brand__mark">MX</span>
@@ -64,7 +61,6 @@ export default function UserLogin() {
           </span>
         </Link>
 
-        {/* Tab switcher */}
         <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.75rem', borderBottom: '1px solid var(--border, #e5e7eb)' }}>
           <button
             type="button"
@@ -228,7 +224,6 @@ export default function UserLogin() {
         </div>
       </div>
 
-      {/* Right art column — same as admin Login */}
       <div className="login__art" aria-hidden="true">
         <span className="login__artMark">MX</span>
         <p>{t('common.museumName')}</p>

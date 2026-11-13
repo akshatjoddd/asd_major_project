@@ -26,7 +26,6 @@ export function AuthProvider({ children }) {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
-      /* storage disabled */
     }
   }, []);
 
@@ -36,13 +35,11 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const result = await api.login(email, password);
-    // Admin token takes priority — clear any lingering user token first
-    try { localStorage.removeItem('museumx.user'); } catch { /* ignore */ }
+    try { localStorage.removeItem('museumx.user'); } catch {  }
     setAuthToken(result.token);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
     } catch {
-      /* storage disabled */
     }
     setSession(result);
     return result;

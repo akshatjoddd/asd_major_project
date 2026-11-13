@@ -2,8 +2,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
-// The build is a single self-contained index.html: Chromium blocks ES module
-// scripts and stylesheets loaded over file://, which left the Electron shell blank.
 export default defineConfig({
   base: './',
   plugins: [react(), viteSingleFile()],

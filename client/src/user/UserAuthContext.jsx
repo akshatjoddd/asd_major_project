@@ -20,8 +20,6 @@ function readUserSession() {
 export function UserAuthProvider({ children }) {
   const [userSession, setUserSession] = useState(readUserSession);
 
-  // Restore user token on mount ONLY when no admin session is active.
-  // Admin token always takes priority — it is set by AdminAuthContext's readSession().
   useEffect(() => {
     try {
       const adminRaw = localStorage.getItem('museumx.auth');
@@ -29,11 +27,9 @@ export function UserAuthProvider({ children }) {
       if (!adminSession?.token && userSession?.token) {
         setAuthToken(userSession.token);
       }
-      // If admin is active, leave the token alone — AdminAuthContext already set it.
     } catch {
-      /* storage disabled */
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = useCallback(async (email, password) => {
     const result = await api.userLogin(email, password);
@@ -41,7 +37,6 @@ export function UserAuthProvider({ children }) {
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result));
     } catch {
-      /* storage disabled */
     }
     setUserSession(result);
     return result;
@@ -53,7 +48,6 @@ export function UserAuthProvider({ children }) {
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(result));
     } catch {
-      /* storage disabled */
     }
     setUserSession(result);
     return result;
@@ -65,7 +59,6 @@ export function UserAuthProvider({ children }) {
     try {
       localStorage.removeItem(USER_STORAGE_KEY);
     } catch {
-      /* storage disabled */
     }
   }, []);
 

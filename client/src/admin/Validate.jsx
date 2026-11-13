@@ -24,7 +24,6 @@ export default function Validate() {
       await scanner.stop();
       scanner.clear();
     } catch {
-      /* already stopped */
     }
   };
 

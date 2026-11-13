@@ -1,5 +1,3 @@
-// i18next setup: English and Hindi, one default namespace, no language detector.
-// The chosen language is persisted in localStorage and also drives <html lang>.
 
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -35,7 +33,6 @@ i18n.on('languageChanged', (language) => {
   try {
     localStorage.setItem(STORAGE_KEY, language);
   } catch {
-    /* storage disabled */
   }
   document.documentElement.lang = language;
 });

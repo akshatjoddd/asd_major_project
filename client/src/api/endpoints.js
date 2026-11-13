@@ -1,5 +1,3 @@
-// Real Express implementation of the contract in section 18 of the TRD.
-// Every function here has a twin in mockApi.js with the same signature.
 
 import { request, query } from './client';
 

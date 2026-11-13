@@ -12,7 +12,6 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
-// Helper error handler
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 class HttpError extends Error {
   constructor(status, message, code = 'REQUEST_FAILED') {
@@ -67,12 +66,10 @@ function publicBooking(b) {
   };
 }
 
-// 1. Health Check
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, database: 'neon-postgresql', time: new Date().toISOString() });
 });
 
-// 2. Ticket Types
 app.get('/api/ticket-types', wrap(async (_req, res) => {
   const types = await prisma.ticketType.findMany({
     where: { isActive: true },
@@ -81,7 +78,6 @@ app.get('/api/ticket-types', wrap(async (_req, res) => {
   res.json(types);
 }));
 
-// 3. Exhibitions & Shows
 app.get('/api/exhibitions', wrap(async (_req, res) => {
   const list = await prisma.exhibition.findMany({
     where: { isActive: true },
@@ -98,7 +94,6 @@ app.get('/api/shows', wrap(async (_req, res) => {
   res.json(list);
 }));
 
-// 4. Slots
 app.get('/api/slots', wrap(async (req, res) => {
   const { date, type = 'entry', refId } = req.query;
   if (!date) throw new HttpError(422, 'date query parameter is required', 'DATE_REQUIRED');
@@ -151,7 +146,6 @@ app.get('/api/slots', wrap(async (req, res) => {
   res.json(slots);
 }));
 
-// ---------- Normal User Authentication & Profile ----------
 app.post('/api/user/register', wrap(async (req, res) => {
   const { name, email, password, phone } = req.body || {};
   if (!name || typeof name !== 'string' || name.trim().length < 2) {
@@ -265,7 +259,6 @@ app.get('/api/user/bookings', requireUser, wrap(async (req, res) => {
   res.json({ bookings: rows.map(publicBooking) });
 }));
 
-// 5. Create Booking
 app.post('/api/bookings', requireUser, wrap(async (req, res) => {
   const { target = 'entry', refId, date, slotId, counts, visitor } = req.body || {};
   if (!req.user?.id) throw new HttpError(401, 'Please sign in to book tickets.', 'UNAUTHORIZED');
@@ -296,10 +289,8 @@ app.post('/api/bookings', requireUser, wrap(async (req, res) => {
 
   const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
-  // Authenticated user ID from token
   const userId = req.user.id;
 
-  // Daily capacity
   const visitDateUtc = new Date(`${date}T00:00:00.000Z`);
   const capacity = await prisma.dailyCapacity.upsert({
     where: { visitDate: visitDateUtc },
@@ -311,7 +302,6 @@ app.post('/api/bookings', requireUser, wrap(async (req, res) => {
     },
   });
 
-  // Details for target
   let refName = 'General entry';
   let refNameHi = 'सामान्य प्रवेश';
   if (target === 'exhibition' && refId) {
@@ -362,7 +352,6 @@ app.post('/api/bookings', requireUser, wrap(async (req, res) => {
   res.status(201).json(publicBooking(booking));
 }));
 
-// 6. Payments
 app.post('/api/payments/order', wrap(async (req, res) => {
   const { bookingId } = req.body || {};
   const booking = await prisma.booking.findUnique({ where: { id: Number(bookingId) } });
@@ -428,7 +417,6 @@ app.post('/api/payments/verify', wrap(async (req, res) => {
   res.json({ booking: publicBooking(updated), payment });
 }));
 
-// 7. Booking Details & Lookup
 app.get('/api/bookings/:idOrCode', wrap(async (req, res) => {
   const { idOrCode } = req.params;
   const { contact } = req.query;
@@ -454,7 +442,6 @@ app.get('/api/bookings/:idOrCode', wrap(async (req, res) => {
   res.json(publicBooking(booking));
 }));
 
-// 8. Cancel Booking
 app.post('/api/bookings/:idOrCode/cancel', wrap(async (req, res) => {
   const { idOrCode } = req.params;
   const { contact } = req.body || {};
@@ -500,7 +487,6 @@ app.post('/api/bookings/:idOrCode/cancel', wrap(async (req, res) => {
   res.json({ booking: publicBooking(updated) });
 }));
 
-// 9. QR Ticket Validation (Gate Staff)
 app.post('/api/tickets/validate', wrap(async (req, res) => {
   const { code } = req.body || {};
   const normalised = String(code || '').trim();
@@ -546,7 +532,6 @@ app.post('/api/tickets/validate', wrap(async (req, res) => {
   });
 }));
 
-// 10. Admin Auth
 app.post('/api/admin/login', wrap(async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) throw new HttpError(400, 'Email and password required', 'INVALID_CREDENTIALS');
@@ -561,7 +546,6 @@ app.post('/api/admin/login', wrap(async (req, res) => {
   res.json({ token, role: admin.role || 'admin', name: admin.name || 'Admin', email: admin.email });
 }));
 
-// 11. Admin Bookings & Payments
 app.get('/api/admin/bookings', requireAdmin, wrap(async (req, res) => {
   const { search, status, page = 1, pageSize = 20 } = req.query;
   const p = Math.max(1, Number(page) || 1);
@@ -639,7 +623,6 @@ app.get('/api/admin/payments', requireAdmin, wrap(async (req, res) => {
   });
 }));
 
-// 12. Admin Analytics
 app.get('/api/admin/analytics/summary', requireAdmin, wrap(async (req, res) => {
   const [totalBookings, confirmedBookings, revenueAgg, todayBookings] = await Promise.all([
     prisma.booking.count(),
@@ -748,7 +731,6 @@ app.get('/api/admin/analytics/popular', requireAdmin, wrap(async (_req, res) => 
   res.json(items);
 }));
 
-// 13. Admin Resource Management (CRUD)
 app.get('/api/admin/exhibitions', requireAdmin, wrap(async (_req, res) => {
   res.json(await prisma.exhibition.findMany({ orderBy: { id: 'asc' } }));
 }));
@@ -833,7 +815,6 @@ app.delete('/api/admin/ticket-types/:id', requireAdmin, wrap(async (req, res) =>
   res.status(204).end();
 }));
 
-// Error handling middleware
 app.use((err, _req, res, _next) => {
   console.error('[API Error]', err);
   const status = err.status || 500;

@@ -1,5 +1,3 @@
-// Switched to real Express API connecting to Neon DB PostgreSQL.
-// Data is stored directly in Neon DB.
 
 import * as real from './endpoints';
 

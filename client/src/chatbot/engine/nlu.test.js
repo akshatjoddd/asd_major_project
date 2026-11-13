@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { matchGlobal, matchOption, matchSlot, parseCounts, parseDate, parseVisitor, normalize } from './nlu';
 
-const now = new Date(2026, 10, 11); // 11 Nov 2026
+const now = new Date(2026, 10, 11);
 
 const options = [
   { id: 'book', labelKey: 'option.book' },

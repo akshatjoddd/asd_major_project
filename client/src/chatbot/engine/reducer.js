@@ -1,6 +1,3 @@
-// Pure chat state machine. Messages store i18n keys (and parameters), never
-// translated sentences, so a language switch re-renders the whole history.
-// Async work lives in useChat; this file only mutates state and appends messages.
 
 import { flow } from './flow';
 import * as nlu from './nlu';
@@ -47,7 +44,6 @@ export function initialChat(lang = 'en') {
   };
 }
 
-/** Flow definitions may list options as ids ("book") or objects (loaded rows). */
 export function normalizeOptions(options) {
   return (options || []).map((option) =>
     typeof option === 'string' ? { id: option, labelKey: `option.${option}` } : option,
@@ -90,8 +86,6 @@ export function enterStep(
     errorMessage: errorMessage || null,
   };
 
-  // States that load data or run an action publish their prompt when the loader
-  // resolves (see LOADED / TICKET), so no empty bubble is shown here.
   if (!append || definition.load || definition.action) return nextState;
 
   const key = textKey || definition.say;
@@ -162,7 +156,6 @@ export function pick(state, optionId) {
   const label = option ? { text: option.label, textKey: option.labelKey } : { textKey: `option.${optionId}` };
   const base = addUser(state, label.textKey, { text: label.text });
 
-  // Global commands are recognised from any state.
   if (optionId === 'menu') return enterStep(base, 'start');
   if (optionId === 'back') return back(base);
   if (optionId === 'restart') return enterStep(resetForNewBooking(base), 'start');
@@ -174,7 +167,6 @@ export function pick(state, optionId) {
   if (optionId === 'retryLoad') return enterStep(base, state.failedStep || 'start');
   if (optionId === 'retryCancel') return enterStep(base, 'cancelAsk');
 
-  // Steps with dynamically loaded options.
   if (state.step === 'pickExhibition' || state.step === 'pickShow') {
     if (!option) return retry(state);
     return enterStep(
@@ -200,12 +192,10 @@ export function pick(state, optionId) {
     );
   }
 
-  // Typed input steps have no selectable options besides the global ones.
   if (state.step === 'date' || state.step === 'counts' || state.step === 'visitor' || state.step === 'cancelAsk') {
     return state;
   }
 
-  // Declarative transitions from the flow definition.
   const transition = definition.next?.[optionId];
   if (!transition) return state;
   const target = typeof transition === 'string' ? transition : transition.step;
@@ -267,7 +257,6 @@ function text(state, value) {
   if (!raw) return state;
   const normalized = nlu.normalize(raw);
 
-  // Numbered quick replies ("2") work in any option state.
   if (/^\d{1,2}$/.test(normalized)) {
     const option = state.currentOptions[Number(normalized) - 1];
     if (option) {
@@ -287,8 +276,6 @@ function text(state, value) {
   if (state.step === 'counts') {
     const parsed = nlu.parseCounts(raw);
     if (parsed) {
-      // Seeded categories: 1 adult, 2 child, 3 student. Admin-created categories
-      // are reachable through the stepper control.
       const mapped = {};
       Object.entries(parsed).forEach(([key, quantity]) => {
         const id = { adult: 1, child: 2, student: 3 }[key];

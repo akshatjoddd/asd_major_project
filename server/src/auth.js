@@ -71,7 +71,6 @@ export function optionalUser(req, res, next) {
     try {
       req.user = jwt.verify(token, JWT_SECRET);
     } catch {
-      // Ignore invalid token in optional context
     }
   }
   next();

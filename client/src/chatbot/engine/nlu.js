@@ -1,5 +1,3 @@
-// Rule-based language understanding: normalise, then match keywords for English,
-// Hindi script and common Hinglish. No network, no ambiguity — pure functions.
 
 import { addDays, isValidISO, isoDate, todayISO } from '../../lib/format';
 
@@ -50,7 +48,6 @@ function contains(haystack, keyword) {
   return ` ${haystack} `.includes(` ${needle} `) || haystack.startsWith(`${needle} `) || haystack.endsWith(` ${needle}`);
 }
 
-/** Best matching global command, or null. */
 export function matchGlobal(text) {
   const value = normalize(text);
   let best = null;
@@ -66,7 +63,6 @@ export function matchGlobal(text) {
   return best;
 }
 
-/** Match typed text against the options currently offered. Returns option id or null. */
 export function matchOption(text, options = []) {
   const value = normalize(text);
   if (!value) return null;
@@ -90,7 +86,6 @@ export function matchOption(text, options = []) {
   return best;
 }
 
-/** "10:00", "10.00" or "10" -> matching slot option id. */
 export function matchSlot(text, options = []) {
   const match = String(text).toLowerCase().match(/\b(\d{1,2})[:.](\d{2})\b/);
   if (!match) return null;
@@ -99,10 +94,8 @@ export function matchSlot(text, options = []) {
   return option ? option.id : null;
 }
 
-/** Parse a typed date into YYYY-MM-DD. Returns null when it is not a valid future date. */
 export function parseDate(text, now = new Date()) {
   const value = normalize(text);
-  // Numeric dates keep their separators, so match on the raw string instead.
   const loose = String(text).toLowerCase().trim();
   const today = isoDate(now);
   if (contains(value, 'today') || contains(value, 'aaj') || value.includes('आज')) return today;
@@ -122,8 +115,6 @@ export function parseDate(text, now = new Date()) {
   return iso;
 }
 
-/** "2 adults and 1 child" -> { adult: 2, child: 1 }. Returns null when nothing matches. */
-/** "Asha Rao, asha@example.com, 98765 43210" -> visitor details, or null. */
 export function parseVisitor(text) {
   const raw = String(text || '').trim();
   if (!raw) return null;

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 
-/** Runs an async loader with loading/error state and a manual reload trigger. */
 export function useApiData(loader, deps = []) {
   const [state, setState] = useState({ data: null, loading: true, error: null });
   const [nonce, setNonce] = useState(0);
@@ -21,7 +20,6 @@ export function useApiData(loader, deps = []) {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, nonce]);
 
   const reload = useCallback(() => setNonce((value) => value + 1), []);

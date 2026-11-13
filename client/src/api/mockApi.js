@@ -1,6 +1,3 @@
-// In-browser mock of the Express API described in section 18 of the TRD.
-// It keeps state in localStorage so a demo booking survives a reload, and it
-// generates ~300 seeded bookings over 30 days so the admin charts are meaningful.
 
 import { ApiError } from './client';
 
@@ -292,13 +289,11 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {
-    // Fall through to a fresh seed.
   }
   const fresh = blankState();
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
   } catch {
-    // Storage can be unavailable; the session still works in memory.
   }
   return fresh;
 }
@@ -309,7 +304,6 @@ function persist() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
-    // Ignore quota or privacy-mode failures.
   }
 }
 
@@ -357,7 +351,6 @@ function buildSlots({ date, type, refId }) {
     };
   });
 
-  // Keep the demo moving: never return a whole day as sold out.
   if (slots.length > 0 && slots.every((slot) => slot.soldOut)) {
     const first = slots[0];
     first.soldOut = false;
@@ -702,7 +695,6 @@ export async function getAnalytics({ days = 7 } = {}) {
   };
 }
 
-// Generic CRUD helper used by the mock for every admin resource.
 function crud(resource, key) {
   return {
     async list() {

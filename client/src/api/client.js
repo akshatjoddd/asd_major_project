@@ -1,4 +1,3 @@
-// Thin fetch wrapper: JSON in, JSON out, bearer token in memory, 401 handling.
 
 export class ApiError extends Error {
   constructor(message, status = 500, code = 'REQUEST_FAILED') {

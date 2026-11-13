@@ -1,4 +1,3 @@
-// Locale-aware date and money helpers (en-IN / hi-IN).
 
 export function isoDate(value = new Date()) {
   const d = value instanceof Date ? value : new Date(value);

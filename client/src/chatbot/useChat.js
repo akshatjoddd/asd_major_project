@@ -1,5 +1,3 @@
-// Binds the pure state machine to the API: loads options, creates the booking,
-// runs the payment and handles cancellation. Components only call these verbs.
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +28,6 @@ export function useChat() {
     dispatch({ type: 'START' });
   }, []);
 
-  // Language changes made outside the chat (header toggle, admin) flow back in.
   useEffect(() => {
     if (i18n.language !== state.lang) i18n.changeLanguage(state.lang);
   }, [state.lang, i18n]);
@@ -64,7 +61,6 @@ export function useChat() {
     [],
   );
 
-  // Load whatever the current state needs (exhibitions, shows, slots, info).
   useEffect(() => {
     const definition = flow[state.step];
     if (!state.pending || !definition?.load) return;
@@ -143,13 +139,10 @@ export function useChat() {
     };
   }, [state.step, state.entryId, state.pending, state.booking.date, state.booking.target, state.booking.refId, state.infoKey, state.lang, loadInfo]);
 
-  // A booking abandoned before payment must not be reused by the next one.
   useEffect(() => {
     if (state.step === 'start' || state.step === 'target') bookingRef.current = null;
   }, [state.step]);
 
-  // Entering the pay state creates the booking once, then an order for it.
-  // The entry guard keeps StrictMode's double effect from booking twice.
   useEffect(() => {
     if (state.step !== 'pay' || !state.pending) return undefined;
     if (payEntryRef.current === state.entryId) return undefined;

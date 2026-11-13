@@ -1,10 +1,38 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useUserAuth } from '../../user/UserAuthContext';
 
 export default function VisitorControl({ value, onSubmit }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: '', email: '', phone: '', ...(value || {}) });
+  const { userSession } = useUserAuth();
+  const currentUser = userSession?.user;
+
+  const [form, setForm] = useState({
+    name: value?.name || currentUser?.name || '',
+    email: value?.email || currentUser?.email || '',
+    phone: value?.phone || currentUser?.phone || '',
+  });
   const [error, setError] = useState('');
+
+  if (!userSession) {
+    return (
+      <div className="control control--visitor" style={{ textAlign: 'center', padding: '1.5rem' }}>
+        <h4 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem' }}>{t('chat.authRequiredTitle')}</h4>
+        <p style={{ margin: '0 0 1.25rem', opacity: 0.75, fontSize: '0.9rem' }}>
+          {t('chat.authRequiredMessage')}
+        </p>
+        <Link
+          to="/login"
+          state={{ from: '/chat' }}
+          className="btn btn--accent btn--block"
+          style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
+        >
+          {t('chat.authRequiredAction')}
+        </Link>
+      </div>
+    );
+  }
 
   const change = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
 

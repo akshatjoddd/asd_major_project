@@ -266,8 +266,9 @@ app.get('/api/user/bookings', requireUser, wrap(async (req, res) => {
 }));
 
 // 5. Create Booking
-app.post('/api/bookings', optionalUser, wrap(async (req, res) => {
+app.post('/api/bookings', requireUser, wrap(async (req, res) => {
   const { target = 'entry', refId, date, slotId, counts, visitor } = req.body || {};
+  if (!req.user?.id) throw new HttpError(401, 'Please sign in to book tickets.', 'UNAUTHORIZED');
   if (!date) throw new HttpError(422, 'Choose a visit date.', 'INVALID_DATE');
   if (!slotId) throw new HttpError(422, 'Choose a time slot.', 'INVALID_SLOT');
   if (!visitor?.name || !(visitor?.email || visitor?.phone)) {
@@ -295,25 +296,8 @@ app.post('/api/bookings', optionalUser, wrap(async (req, res) => {
 
   const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
-  // Resolve or upsert visitor User in Neon DB
-  let userId;
-  if (req.user?.id) {
-    userId = req.user.id;
-  } else {
-    const emailContact = (visitor.email || `${String(visitor.phone).replace(/\D/g, '')}@museumx.user`).toLowerCase().trim();
-    const guestPassHash = await bcrypt.hash('museumx_guest', 8);
-    const user = await prisma.user.upsert({
-      where: { email: emailContact },
-      update: { name: String(visitor.name).trim(), phone: visitor.phone ? String(visitor.phone).trim() : undefined },
-      create: {
-        name: String(visitor.name).trim(),
-        email: emailContact,
-        phone: visitor.phone ? String(visitor.phone).trim() : null,
-        passwordHash: guestPassHash,
-      },
-    });
-    userId = user.id;
-  }
+  // Authenticated user ID from token
+  const userId = req.user.id;
 
   // Daily capacity
   const visitDateUtc = new Date(`${date}T00:00:00.000Z`);

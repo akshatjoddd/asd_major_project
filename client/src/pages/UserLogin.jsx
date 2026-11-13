@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUserAuth } from '../user/UserAuthContext';
 import LanguageToggle from '../components/LanguageToggle';
@@ -8,6 +8,8 @@ export default function UserLogin() {
   const { t } = useTranslation();
   const { login, register } = useUserAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectPath = location.state?.from || '/my-bookings';
   const [tab, setTab] = useState('login'); // 'login' | 'register'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,7 +30,7 @@ export default function UserLogin() {
     setLoading(true);
     try {
       await login(loginEmail, loginPassword);
-      navigate('/my-bookings');
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       setError(err.message || t('errors.generic'));
     } finally {
@@ -42,7 +44,7 @@ export default function UserLogin() {
     setLoading(true);
     try {
       await register({ name: regName, email: regEmail, password: regPassword, phone: regPhone || undefined });
-      navigate('/my-bookings');
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       setError(err.message || t('errors.generic'));
     } finally {

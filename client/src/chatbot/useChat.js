@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../api';
+import { useUserAuth } from '../user/UserAuthContext';
 import { formatMoney } from '../lib/format';
 import { flow } from './engine/flow';
 import { initialChat, reducer } from './engine/reducer';
@@ -17,6 +18,7 @@ function errorInfo(error) {
 
 export function useChat() {
   const { i18n, t } = useTranslation();
+  const { userSession } = useUserAuth();
   const [state, dispatch] = useReducer(reducer, i18n.language, initialChat);
   const [payment, setPayment] = useState(null);
   const [processing, setProcessing] = useState(false);
@@ -152,6 +154,12 @@ export function useChat() {
     if (state.step !== 'pay' || !state.pending) return undefined;
     if (payEntryRef.current === state.entryId) return undefined;
     payEntryRef.current = state.entryId;
+
+    if (!userSession) {
+      dispatch({ type: 'REQUIRE_AUTH' });
+      return undefined;
+    }
+
     let alive = true;
 
     (async () => {
@@ -233,8 +241,29 @@ export function useChat() {
     payment,
     processing,
     pending: state.pending,
-    send: (text) => dispatch({ type: 'TEXT', text }),
-    pick: (optionId) => dispatch({ type: 'PICK', optionId }),
+    send: (text) => {
+      if (!userSession) {
+        const lower = text.toLowerCase();
+        if (
+          lower.includes('book') ||
+          lower.includes('ticket') ||
+          lower.includes('visit') ||
+          lower.includes('बुक') ||
+          lower.includes('टिकट')
+        ) {
+          dispatch({ type: 'REQUIRE_AUTH', text });
+          return;
+        }
+      }
+      dispatch({ type: 'TEXT', text });
+    },
+    pick: (optionId) => {
+      if ((optionId === 'book' || optionId === 'entry' || optionId === 'exhibition' || optionId === 'show') && !userSession) {
+        dispatch({ type: 'REQUIRE_AUTH' });
+        return;
+      }
+      dispatch({ type: 'PICK', optionId });
+    },
     submitDate: (value, display) => dispatch({ type: 'SET_DATE', value, display }),
     submitCounts: (counts, display) => dispatch({ type: 'SET_COUNTS', counts, display }),
     submitVisitor: (visitor, display) => dispatch({ type: 'SET_VISITOR', visitor, display }),

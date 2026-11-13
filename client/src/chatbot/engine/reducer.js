@@ -322,6 +322,10 @@ export function reducer(state, action) {
   switch (action.type) {
     case 'START':
       return enterStep({ ...state, messages: [] }, 'start');
+    case 'REQUIRE_AUTH': {
+      const base = action.text ? addUser(state, undefined, { text: action.text }) : state;
+      return enterStep(base, 'authRequired');
+    }
     case 'PICK':
       return pick(state, action.optionId);
     case 'TEXT':

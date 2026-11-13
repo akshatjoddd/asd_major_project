@@ -10,6 +10,12 @@
 //   next     next step id, or map of option id -> step id | { step, infoKey }
 
 export const flow = {
+  authRequired: {
+    say: 'authRequiredMessage',
+    control: 'signInRequired',
+    options: ['menu'],
+    next: { menu: 'start' },
+  },
   start: {
     say: 'welcome',
     options: ['book', 'info', 'cancel', 'language'],

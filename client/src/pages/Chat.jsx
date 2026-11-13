@@ -10,6 +10,7 @@ import VisitorControl from '../chatbot/components/VisitorControl';
 import SummaryCard from '../chatbot/components/SummaryCard';
 import CancelControl from '../chatbot/components/CancelControl';
 import PaymentSheet from '../chatbot/components/PaymentSheet';
+import SignInRequiredControl from '../chatbot/components/SignInRequiredControl';
 
 function ChatControl({ state, chat }) {
   switch (state.control) {
@@ -23,6 +24,8 @@ function ChatControl({ state, chat }) {
       return <SummaryCard booking={state.booking} />;
     case 'cancelForm':
       return <CancelControl key={state.entryId} onSubmit={chat.submitCancel} />;
+    case 'signInRequired':
+      return <SignInRequiredControl key={state.entryId} />;
     default:
       return null;
   }

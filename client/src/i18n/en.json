@@ -201,7 +201,11 @@
       "prices": "Ticket prices:\n{{list}}\nChildren under 3 enter free.",
       "exhibitions": "Current exhibitions:\n{{list}}",
       "shows": "Shows running today:\n{{list}}"
-    }
+    },
+    "authRequiredTitle": "Sign in required",
+    "authRequiredMessage": "Please sign in or create an account to book tickets. Your bookings will be saved to your account.",
+    "authRequiredAction": "Sign in / Register",
+    "authRequiredHint": "Sign in is required to book tickets."
   },
   "ui": {
     "ticket": {
